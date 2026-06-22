@@ -31,7 +31,7 @@ class PasswordService {
         val filter = Filters.eq("userId", userId)
         val passwordChars = plainTextPassword.toCharArray()
         val updates = Updates.combine(
-            Updates.set("hash", argon2.hash(2, 65536, 1, passwordChars)),
+            Updates.set("hash", argon2.hash(3, 65536, 1, passwordChars)),
             Updates.set("timestamp", System.currentTimeMillis())
         )
         val options = FindOneAndUpdateOptions()
@@ -54,7 +54,7 @@ class PasswordService {
     }
 
     fun deleteByUserId(userId: org.bson.types.ObjectId) {
-        val filter = Filters.eq("_id", userId)
+        val filter = Filters.eq("userId", userId)
         collection.deleteOne(filter)
     }
 }

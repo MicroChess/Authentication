@@ -1,23 +1,17 @@
 package core
 
 import com.mongodb.client.MongoCollection
-import com.mongodb.client.result.InsertOneResult
 import com.mongodb.client.MongoClient
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
 import com.mongodb.client.model.FindOneAndUpdateOptions
 import com.mongodb.client.model.ReturnDocument
-import jakarta.inject.Singleton
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
-import jakarta.ws.rs.ClientErrorException
 import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.InternalServerErrorException
 import jakarta.ws.rs.ForbiddenException
 import org.bson.types.ObjectId
 
 import model.OtpModel
-import model.UserModel
 
 class GenericOtpService: OtpService {
 
@@ -65,5 +59,9 @@ class GenericOtpService: OtpService {
             collection.updateOne(filter, updates)
             throw ForbiddenException("Invalid OTP code")
         }
+    }
+
+    override fun deleteByUserId(userId: ObjectId) {
+        collection.deleteOne(Filters.eq("userId", userId))
     }
 }

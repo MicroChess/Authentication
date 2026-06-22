@@ -13,6 +13,7 @@ interface OtpService {
     fun findOrPanic(userId: ObjectId): OtpModel
     fun createOrRefresh(userId: ObjectId): OtpModel
     fun verifyOtp(otpText: String, otpModel: OtpModel)
+    fun deleteByUserId(userId: ObjectId)
 }
 
 @ApplicationScoped

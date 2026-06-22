@@ -43,7 +43,6 @@ class TokenService {
     }
 
     fun emitNewToken(user: UserModel): String {
-        val key = Keys.secretKeyFor(SignatureAlgorithm.HS256)
         val now = Date()
         val exp = Date(now.time + 3600_000)
         return Jwts.builder()
@@ -70,13 +69,14 @@ class TokenService {
             username = claims.subject,
             email = claims["email"] as String,
             tenant = claims["tenant"] as String,
-            status = claims["status"] as UserStatus
+            status = UserStatus.valueOf(claims["status"] as String)
         )
     }
 
     fun emitAuthorizedResponse(user: UserModel): Response {
         val jwt = emitNewToken(user)
         return Response.ok()
+            .header("Authorization", "Bearer $jwt")
             .header("X-User-Name", user.username)
             .header("X-User-Email", user.email)
             .header("X-User-ID", user.id.toString())
