@@ -51,14 +51,14 @@ class GenericOtpService: OtpService {
     }
 
     override fun verifyOtp(otpText: String, otpModel: OtpModel) {
-        if (otpText != otpModel.otp || otpModel.attempts >= 5) {
-            val filter = Filters.eq("_id", otpModel.id)
-            val updates = Updates.combine(
-                Updates.inc("attempts", 1),
-            )
-            collection.updateOne(filter, updates)
+        val filter = Filters.eq("_id", otpModel.id)
+        val current = collection.find(filter).first()
+            ?: throw ForbiddenException("Invalid OTP code")
+        if (otpText != current.otp || current.attempts >= 5) {
+            collection.updateOne(filter, Updates.inc("attempts", 1))
             throw ForbiddenException("Invalid OTP code")
         }
+        collection.updateOne(filter, Updates.set("attempts", 5))
     }
 
     override fun deleteByUserId(userId: ObjectId) {

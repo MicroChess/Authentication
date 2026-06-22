@@ -4,8 +4,6 @@ import model.PasswordModel
 import model.UserModel
 import model.UserStatus
 import io.quarkus.test.junit.QuarkusTest
-import io.restassured.RestAssured.given
-import org.hamcrest.CoreMatchers.`is`
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import jakarta.ws.rs.ForbiddenException
@@ -76,5 +74,13 @@ class UserServiceTest {
         assertThrows<ClientErrorException> {
             service.findOrCreate(altered)
         }
+    }
+
+    @Test
+    fun `markAsVerified returns user with ACTIVE status`(tinfo: TestInfo) {
+        val user = craftUserModel(tinfo).copy(status = UserStatus.PENDING)
+        val created = service.createOrPanic(user)
+        val updated = service.markAsVerified(created)
+        assertEquals(UserStatus.ACTIVE, updated.status)
     }
 }

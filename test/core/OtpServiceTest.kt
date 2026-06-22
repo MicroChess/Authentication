@@ -5,8 +5,6 @@ import model.UserModel
 import model.UserStatus
 import com.mongodb.client.MongoClient
 import io.quarkus.test.junit.QuarkusTest
-import io.restassured.RestAssured.given
-import org.hamcrest.CoreMatchers.`is`
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import jakarta.ws.rs.ForbiddenException
@@ -57,26 +55,47 @@ class GenericOtpServiceTest {
         val stored = service.createOrRefresh(targetUserId)
         assertThrows<ForbiddenException> {
             service.verifyOtp("invalid", stored)
-            val updated = service.findOrPanic(stored.id!!)
-            assertEquals(1, updated.attempts)
+        }
+        val updated = service.findOrPanic(targetUserId)
+        assertEquals(1, updated.attempts)
+    }
+
+    @Test
+    fun `verifyOtp is not replayable after success`() {
+        val service = GenericOtpService(client, "test-otps")
+        val targetUserId: ObjectId = ObjectId()
+        val stored = service.createOrRefresh(targetUserId)
+        service.verifyOtp(stored.otp, stored)
+        assertThrows<ForbiddenException> {
+            service.verifyOtp(stored.otp, stored)
         }
     }
 
     @Test
-    fun `verifyOtp fails on saturates attempts`() {
+    fun `verifyOtp fails on saturated attempts`() {
         val service = GenericOtpService(client, "test-otps")
         val targetUserId: ObjectId = ObjectId()
-        var otpCode = service.createOrRefresh(targetUserId)
+        val correctOtp = service.createOrRefresh(targetUserId).otp
         for (attempt in 1..5) {
             assertThrows<ForbiddenException> {
-                otpCode = service.findOrPanic(targetUserId)
-                service.verifyOtp("invalid", otpCode)
-                assertEquals(attempt, otpCode.attempts)
+                val freshModel = service.findOrPanic(targetUserId)
+                service.verifyOtp("invalid", freshModel)
             }
         }
         assertThrows<ForbiddenException> {
-            otpCode = service.findOrPanic(targetUserId)
-            service.verifyOtp(otpCode.otp, otpCode)
+            val freshModel = service.findOrPanic(targetUserId)
+            service.verifyOtp(correctOtp, freshModel)
+        }
+    }
+
+    @Test
+    fun `deleteByUserId removes the otp document`() {
+        val service = GenericOtpService(client, "test-otps")
+        val targetUserId: ObjectId = ObjectId()
+        service.createOrRefresh(targetUserId)
+        service.deleteByUserId(targetUserId)
+        assertThrows<jakarta.ws.rs.NotFoundException> {
+            service.findOrPanic(targetUserId)
         }
     }
 }

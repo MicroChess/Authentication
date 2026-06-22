@@ -17,20 +17,26 @@ class AccountDeleteVerify {
     private val passwords: PasswordService
     private val tokens: TokenService
     private val otpCodes: AccountDeletionOtpService
+    private val registrationOtps: RegistrationOtpService
+    private val passwordResetOtps: PasswordResetOtpService
     private val client: MongoClient
 
     @Inject constructor(
         mongoClient: MongoClient,
         users: UserService,
-        passwords: PasswordService, 
+        passwords: PasswordService,
         otpCodes: AccountDeletionOtpService,
-        tokens: TokenService
+        tokens: TokenService,
+        registrationOtps: RegistrationOtpService,
+        passwordResetOtps: PasswordResetOtpService
     ) {
         this.client = mongoClient
         this.users = users
         this.passwords = passwords
         this.tokens = tokens
         this.otpCodes = otpCodes
+        this.registrationOtps = registrationOtps
+        this.passwordResetOtps = passwordResetOtps
     }
 
     @POST @Produces(MediaType.APPLICATION_JSON)
@@ -38,16 +44,22 @@ class AccountDeleteVerify {
         @QueryParam("jwt-token")      queryParam:   String?,
         @HeaderParam("X-Jwt-Token")   customHeader: String?,
         @HeaderParam("Authorization") authHeader:   String?,
-        @QueryParam("X-Otp-Code")     otpCode:      String?
+        @HeaderParam("X-Otp-Code")    otpCode:      String?
     ): Response {
         val token = tokens.extractAuthenticationToken(queryParam, customHeader, authHeader)
         val model = tokens.parseJsonWebToken(token)
         val userId = model.id!!
         users.ensureAccountStillExists(model)
-        client.startSession().use { 
-            session -> session.withTransaction {
+        val otp = otpCode ?: throw BadRequestException("OTP code is required")
+        val reference = otpCodes.findOrPanic(userId)
+        otpCodes.verifyOtp(otp, reference)
+        client.startSession().use { session ->
+            session.withTransaction {
                 users.deleteByUserId(userId)
                 passwords.deleteByUserId(userId)
+                registrationOtps.deleteByUserId(userId)
+                passwordResetOtps.deleteByUserId(userId)
+                otpCodes.deleteByUserId(userId)
             }
         }
         return Response.ok().build()

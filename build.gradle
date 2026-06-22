@@ -21,7 +21,7 @@ sourceSets {
     }
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     kotlinOptions {
         allWarningsAsErrors = true
     }
@@ -56,7 +56,7 @@ dependencies {
     implementation 'org.mongodb:bson:4.11.0'
 
     testImplementation 'io.quarkus:quarkus-junit-mockito'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.3.1' 
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.3.1'
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'io.mockk:mockk:1.13.10'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
@@ -76,11 +76,11 @@ allOpen {
     annotation('io.quarkus.test.junit.QuarkusTest')
 }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_21
+tasks.named('compileKotlin', org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    kotlinOptions.jvmTarget = '21'
     kotlinOptions.javaParameters = true
 }
 
-compileTestKotlin {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_21
+tasks.named('compileTestKotlin', org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    kotlinOptions.jvmTarget = '21'
 }
