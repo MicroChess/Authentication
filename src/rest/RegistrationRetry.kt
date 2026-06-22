@@ -8,6 +8,8 @@ import org.json.*
 import java.net.*
 import model.*
 import core.*
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 @Path("/v1/auth/account-register/retry")
 class RegistrationRetry {
@@ -20,7 +22,7 @@ class RegistrationRetry {
 
     @Inject constructor(
         users: UserService,
-        passwords: PasswordService, 
+        passwords: PasswordService,
         otpCodes: RegistrationOtpService,
         mailing: EmailService,
         tokens: TokenService
@@ -33,13 +35,15 @@ class RegistrationRetry {
     }
 
     data class RequestBody(
+        @field:NotBlank 
+        @field:Email
         val email: String
     )
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun retry(request: RequestBody): Response  {
+    fun retry(@Valid request: RequestBody): Response  {
         val account = users.findOrPanic(request.email)
         when (account.status) {
             UserStatus.PENDING -> {}

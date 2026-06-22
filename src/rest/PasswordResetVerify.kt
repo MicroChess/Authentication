@@ -8,6 +8,8 @@ import org.json.*
 import java.net.*
 import model.*
 import core.*
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 @Path("/v1/auth/password-reset/verify")
 class PasswordResetVerify {
@@ -19,7 +21,7 @@ class PasswordResetVerify {
 
     @Inject constructor(
         users: UserService,
-        passwords: PasswordService, 
+        passwords: PasswordService,
         otpCodes: PasswordResetOtpService,
         tokens: TokenService
     ) {
@@ -30,18 +32,22 @@ class PasswordResetVerify {
     }
 
     data class RequestBody(
+        @field:NotBlank
         val identity:    String,
+
+        @field:NotBlank @field:Pattern(regexp = "^\\d{6}\$")
         val otpCode:     String,
+
+        @field:NotBlank @field:Size(min = 8)
         val newPassword: String,
     )
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun verify(request: RequestBody): Response  {
+    fun verify(@Valid request: RequestBody): Response  {
         val account = users.findOrPanic(request.identity)
-        val password = passwords.findOrPanic(account.id!!)
-        val reference = otpCodes.findOrPanic(account.id)
+        val reference = otpCodes.findOrPanic(account.id!!)
         otpCodes.verifyOtp(request.otpCode, reference)
         passwords.createOrUpdate(request.newPassword, account.id)
         return tokens.emitAuthorizedResponse(account)

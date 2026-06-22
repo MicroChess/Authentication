@@ -40,6 +40,6 @@ class AccountDeleteInit {
         users.ensureAccountStillExists(model)
         val otpData = otpCodes.createOrRefresh(model.id!!)
         mailing.sendAccountDeletetionVerificationEmail(model.email, otpData.otp)
-        return tokens.emitAuthorizedResponse(model)
+        return Response.ok().build()
     }
 }

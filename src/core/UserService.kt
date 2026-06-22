@@ -1,7 +1,6 @@
 package core
 
 import com.mongodb.client.MongoCollection
-import com.mongodb.client.result.InsertOneResult
 import com.mongodb.client.MongoClient
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
@@ -51,7 +50,7 @@ class UserService {
         }
     }
 
-    fun markAsVerified(candidate: UserModel) {
+    fun markAsVerified(candidate: UserModel): UserModel {
         val update = Updates.combine(
             Updates.set("status", UserStatus.ACTIVE)
         )
@@ -59,7 +58,8 @@ class UserService {
             .upsert(false)
             .returnDocument(ReturnDocument.AFTER)
         val filter = getMongoFilters(candidate)
-        collection.findOneAndUpdate(filter, update, options)
+        return collection.findOneAndUpdate(filter, update, options)
+            ?: throw InternalServerErrorException("Failed to mark user as verified")
     }
 
     fun createOrPanic(candidate: UserModel): UserModel {

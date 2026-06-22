@@ -8,6 +8,8 @@ import org.json.*
 import java.net.*
 import model.*
 import core.*
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 @Path("/v1/auth/login/native")
 class AccountLogin {
@@ -18,7 +20,7 @@ class AccountLogin {
 
     @Inject constructor(
         users: UserService,
-        passwords: PasswordService, 
+        passwords: PasswordService,
         tokens: TokenService
     ) {
         this.users = users
@@ -27,14 +29,17 @@ class AccountLogin {
     }
 
     data class RequestBody(
+        @field:NotBlank
         val identity: String,
+
+        @field:NotBlank
         val password: String,
     )
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun login(request: RequestBody): Response  {
+    fun login(@Valid request: RequestBody): Response  {
         val user = users.findOrPanic(request.identity)
         val password = passwords.findOrPanic(user.id!!)
         passwords.verifyPassword(request.password, password)

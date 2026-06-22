@@ -8,6 +8,8 @@ import org.json.*
 import java.net.*
 import model.*
 import core.*
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 @Path("/v1/auth/password-reset/init")
 class PasswordResetInit {
@@ -19,7 +21,7 @@ class PasswordResetInit {
 
     @Inject constructor(
         users: UserService,
-        passwords: PasswordService, 
+        passwords: PasswordService,
         otpCodes: PasswordResetOtpService,
         mailing: EmailService
     ) {
@@ -30,13 +32,14 @@ class PasswordResetInit {
     }
 
     data class RequestBody(
+        @field:NotBlank
         val identity: String,
     )
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun reset(request: RequestBody): Response  {
+    fun reset(@Valid request: RequestBody): Response  {
         val account = users.findOrPanic(request.identity)
         if (account.tenant != "microchess") {
             throw ForbiddenException("Account registered as passwordless")

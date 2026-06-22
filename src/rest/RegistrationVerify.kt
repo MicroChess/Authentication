@@ -8,6 +8,8 @@ import org.json.*
 import java.net.*
 import model.*
 import core.*
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 @Path("/v1/auth/account-register/verify")
 class RegistrationVerify {
@@ -19,7 +21,7 @@ class RegistrationVerify {
 
     @Inject constructor(
         users: UserService,
-        passwords: PasswordService, 
+        passwords: PasswordService,
         otpCodes: RegistrationOtpService,
         tokens: TokenService
     ) {
@@ -30,14 +32,18 @@ class RegistrationVerify {
     }
 
     data class RequestBody(
+        @field:NotBlank
         val identity: String,
+
+        @field:NotBlank 
+        @field:Pattern(regexp = "^\\d{6}\$")
         val otpCode:  String,
     )
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun verify(request: RequestBody): Response  {
+    fun verify(@Valid request: RequestBody): Response  {
         val account = users.findOrPanic(request.identity)
         when (account.status) {
             UserStatus.PENDING -> {}
@@ -48,6 +54,6 @@ class RegistrationVerify {
         val reference = otpCodes.findOrPanic(userId)
         otpCodes.verifyOtp(request.otpCode, reference)
         val updated = users.markAsVerified(account)
-        return tokens.emitAuthorizedResponse(account)
+        return tokens.emitAuthorizedResponse(updated)
     }
 }
