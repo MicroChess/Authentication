@@ -3,6 +3,7 @@ package core
 import model.UserModel
 import model.UserStatus
 import io.quarkus.test.junit.QuarkusTest
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,11 +17,14 @@ class TokenServiceTest {
 
     @Inject lateinit var service: TokenService
 
+    @ConfigProperty(name = "primary.tenant")
+    lateinit var primaryTenant: String
+
     private fun craftUserModel() = UserModel(
         id = ObjectId(),
         username = "tokentest",
         email = "tokentest@example.com",
-        tenant = "microchess",
+        tenant = primaryTenant,
         status = UserStatus.ACTIVE
     )
 

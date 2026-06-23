@@ -20,22 +20,22 @@ class RegistrationInit {
     private val tokens: TokenService
     private val otpCodes: RegistrationOtpService
     private val mailing: EmailService
-    private val tenant: String
+
+    @ConfigProperty(name = "primary.tenant") 
+    lateinit var primaryTenant: String
 
     @Inject constructor(
         users: UserService,
         passwords: PasswordService,
         otpCodes: RegistrationOtpService,
         mailing: EmailService,
-        tokens: TokenService,
-        @ConfigProperty(name = "microchess.tenant") tenant: String
+        tokens: TokenService
     ) {
         this.users = users
         this.passwords = passwords
         this.tokens = tokens
         this.otpCodes = otpCodes
         this.mailing = mailing
-        this.tenant = tenant
     }
 
     data class RequestBody(
@@ -60,7 +60,7 @@ class RegistrationInit {
         val user = UserModel(
             username = request.username,
             email = request.email,
-            tenant = tenant,
+            tenant = primaryTenant,
             status = UserStatus.PENDING
         )
         val created = users.createOrPanic(user)

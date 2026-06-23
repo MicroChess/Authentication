@@ -7,6 +7,7 @@ import io.quarkus.test.junit.QuarkusTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import jakarta.ws.rs.ForbiddenException
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
@@ -21,10 +22,13 @@ class UserServiceTest {
 
     @Inject lateinit var service: UserService
 
+    @ConfigProperty(name = "primary.tenant")
+    lateinit var primaryTenant: String
+
     fun craftUserModel(tinfo: TestInfo) = UserModel(
         username=tinfo.testMethod.get().name,
         email="${tinfo.testMethod.get().name}@test.example",
-        tenant="microchess",
+        tenant=primaryTenant,
         status=UserStatus.ACTIVE
     )
 

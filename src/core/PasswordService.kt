@@ -4,6 +4,7 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoClient
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import com.mongodb.client.model.FindOneAndUpdateOptions
 import com.mongodb.client.model.ReturnDocument
 import de.mkammerer.argon2.Argon2Factory
@@ -23,7 +24,7 @@ class PasswordService {
     private val argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id)
 
     @Inject constructor(client: MongoClient) {
-        this.collection = client.getDatabase("microchess")
+        this.collection = client.getDatabase("auth")
             .getCollection("passwords", PasswordModel::class.java)
     }
 

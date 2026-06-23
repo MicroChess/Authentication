@@ -6,6 +6,7 @@ import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
 import com.mongodb.client.model.FindOneAndUpdateOptions
 import com.mongodb.client.model.ReturnDocument
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.ws.rs.ClientErrorException
@@ -22,7 +23,7 @@ class UserService {
     private val collection: MongoCollection<UserModel>
 
     @Inject constructor(client: MongoClient) {
-        this.collection = client.getDatabase("microchess")
+        this.collection = client.getDatabase("auth")
             .getCollection("users", UserModel::class.java)
     }
 

@@ -10,6 +10,7 @@ import model.*
 import core.*
 import jakarta.validation.Valid
 import jakarta.validation.constraints.*
+import org.eclipse.microprofile.config.inject.ConfigProperty
 
 @Path("/v1/auth/password-reset/init")
 class PasswordResetInit {
@@ -18,6 +19,9 @@ class PasswordResetInit {
     private val passwords: PasswordService
     private val otpCodes: PasswordResetOtpService
     private val mailing: EmailService
+
+    @ConfigProperty(name = "primary.tenant") 
+    lateinit var primaryTenant: String
 
     @Inject constructor(
         users: UserService,
@@ -41,7 +45,7 @@ class PasswordResetInit {
     @Produces(MediaType.APPLICATION_JSON)
     fun reset(@Valid request: RequestBody): Response  {
         val account = users.findOrPanic(request.identity)
-        if (account.tenant != "microchess") {
+        if (account.tenant != primaryTenant) {
             throw ForbiddenException("Account registered as passwordless")
         }
         val otpData = otpCodes.createOrRefresh(account.id!!)

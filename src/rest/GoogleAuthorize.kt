@@ -10,23 +10,24 @@ import model.*
 import core.*
 import org.eclipse.microprofile.config.inject.ConfigProperty
 
-const val GOOGLE_USERINFO_ENDPOINT = "https://www.googleapis.com/oauth2/v2/userinfo"
-
 @Path("/v1/auth/authorize/google")
 class GoogleAuthorize {
 
     private val users: UserService
     private val tokens: TokenService
-    private val tenant: String
+
+    @ConfigProperty(name = "google.tenant") 
+    lateinit var googleTenant: String
+
+    @ConfigProperty(name = "google.api.url") 
+    lateinit var googleApiUrl: String
 
     @Inject constructor(
         users: UserService,
-        tokens: TokenService,
-        @ConfigProperty(name = "microchess.tenant") tenant: String
+        tokens: TokenService
     ) {
         this.users = users
         this.tokens = tokens
-        this.tenant = tenant
     }
 
     @POST @Produces(MediaType.APPLICATION_JSON)
@@ -57,13 +58,13 @@ class GoogleAuthorize {
     private fun defaultUserModel(email: String) = UserModel(
         username = email,
         email = email,
-        tenant = tenant,
+        tenant = googleTenant,
         status = UserStatus.ACTIVE
     )
 
     private fun googleOAuthDecode(token: String): String {
         val request = HttpRequest.newBuilder()
-            .uri(URI.create(GOOGLE_USERINFO_ENDPOINT))
+            .uri(URI.create(googleApiUrl))
             .header("Authorization", "Bearer $token")
             .GET()
             .build()
